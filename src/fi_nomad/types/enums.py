@@ -44,6 +44,7 @@ class KernelStrategy(Enum):
     BASE_MODEL_FREE = 2
     GAUSSIAN_MODEL_SINGLE_VARIANCE = 3
     GAUSSIAN_MODEL_ROWWISE_VARIANCE = 4
+    MOMENTUM_3_BLOCK_MODEL_FREE = 5
 
 
 class DiagnosticLevel(Enum):
