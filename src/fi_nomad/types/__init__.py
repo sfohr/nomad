@@ -16,6 +16,7 @@ from .types import (
 from .kernelInputTypes import (
     KernelInputType as KernelInputType,
     KernelSpecificParameters as KernelSpecificParameters,
+    AggressiveMomentumAdditionalParameters as AggressiveMomentumAdditionalParameters,
 )
 
 from .kernelReturnTypes import (
@@ -24,4 +25,5 @@ from .kernelReturnTypes import (
     RowwiseVarianceGaussianModelKernelReturnType as RowwiseVarianceGaussianModelKernelReturnType,
     KernelReturnDataType as KernelReturnDataType,
     KernelReturnType as KernelReturnType,
+    AggressiveMomentumModelFreeKernelReturnType as AggressiveMomentumModelFreeKernelReturnType,
 )

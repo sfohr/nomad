@@ -49,10 +49,16 @@ class RowwiseVarianceGaussianModelKernelReturnType(KernelReturnBase):
     variance: FloatArrayType
 
 
+@dataclass
+class AggressiveMomentumModelFreeKernelReturnType(KernelReturnBase):
+    """Base/naive method returns only the reconstruction. (Adds nothing to base.)"""
+
+
 KernelReturnDataType = Union[
     BaseModelFreeKernelReturnType,
     SingleVarianceGaussianModelKernelReturnType,
     RowwiseVarianceGaussianModelKernelReturnType,
+    AggressiveMomentumModelFreeKernelReturnType,
 ]
 
 
