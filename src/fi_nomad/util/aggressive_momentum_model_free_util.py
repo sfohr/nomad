@@ -4,6 +4,8 @@ Functions:
     xxxx: __description__
 """
 
+from fi_nomad.types import AggressiveMomentumAdditionalParameters
+
 
 def increase_momentum_beta(beta: float, gamma: float, beta_bar: float) -> float:
     """Increase momentum parameter beta
@@ -43,3 +45,39 @@ def decrease_momentum_beta(beta: float, eta: float) -> float:
         The updated momentum parameter `beta`.
     """
     return beta / eta
+
+
+def validate_hyperparameters(
+    custom_params: AggressiveMomentumAdditionalParameters,
+) -> None:
+    """Validate hyperparameters for the aggressive momentum NMD kernel
+
+    Such that:
+        - :math:`\\beta \\in (0, 1)`
+        - :math:`1.0 < \\gamma_bar < \\gamma < \\eta`
+
+    Args:
+        custom_params: object containing the kernel's custom parameters.
+
+    Raises:
+        ValueError: If any of the hyperparameters does not meet the required constraints.
+
+    Returns:
+        None
+    """
+
+    beta = custom_params.momentum_beta
+    gamma = custom_params.momentum_increase_factor_gamma
+    gamma_bar = custom_params.momentum_upper_bound_increase_factor_gamma_bar
+    eta = custom_params.momentum_decrease_divisor_eta
+
+    if not 0.0 < beta < 1.0:
+        raise ValueError(f"`momentum_beta` ({beta}) must be in the range (0, 1).")
+    if not gamma_bar > 1.0:
+        raise ValueError(f"`gamma_bar` ({gamma_bar}) must be greater than 1.0.")
+    if not gamma_bar < gamma:
+        raise ValueError(
+            f"`gamma_bar` ({gamma_bar}) must be less than `gamma` ({gamma})."
+        )
+    if not gamma < eta:
+        raise ValueError(f"`gamma` ({gamma}) must be less than `eta` ({eta}).")

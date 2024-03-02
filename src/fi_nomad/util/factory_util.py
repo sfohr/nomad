@@ -13,6 +13,7 @@ from fi_nomad.kernels import (
     BaseModelFree,
     RowwiseVarianceGaussianModelKernel,
     SingleVarianceGaussianModelKernel,
+    AggressiveMomentumModelFreeKernel,
 )
 from fi_nomad.types.enums import DiagnosticLevel
 
@@ -23,6 +24,7 @@ from fi_nomad.types import (
     KernelSpecificParameters,
     KernelStrategy,
     DiagnosticDataConfig,
+    AggressiveMomentumAdditionalParameters,
 )
 
 
@@ -49,16 +51,11 @@ def instantiate_kernel(
             data output. Defaults to None (turning the feature off).
 
     Raises:
-        NotImplementedError: Raised if optional kernel parameters are passed.
         ValueError: Raised if an unrecognized kernel type is requested.
 
     Returns:
         The instantiated decomposition kernel, conforming to the standard interface.
     """
-    if kernel_params is not None:
-        raise NotImplementedError(
-            "No kernel is using these yet. Remove this note when implemented."
-        )
     kernel: Optional[KernelBase] = None
     if s == KernelStrategy.BASE_MODEL_FREE:
         kernel = BaseModelFree(data_in)
@@ -66,6 +63,15 @@ def instantiate_kernel(
         kernel = SingleVarianceGaussianModelKernel(data_in)
     elif s == KernelStrategy.GAUSSIAN_MODEL_ROWWISE_VARIANCE:
         kernel = RowwiseVarianceGaussianModelKernel(data_in)
+    elif s == KernelStrategy.AGGRESSIVE_MOMENTUM_MODEL_FREE:
+        if isinstance(kernel_params, AggressiveMomentumAdditionalParameters):
+            # if we don't check this, mypy complains
+            kernel = AggressiveMomentumModelFreeKernel(data_in, kernel_params)
+        else:
+            raise TypeError(
+                "kernel_params must be an instance of AggressiveMomentumAdditionalParameters \
+                    for AGGRESSIVE_MOMENTUM_MODEL_FREE strategy."
+            )
     else:
         raise ValueError(f"Unsupported kernel strategy {s}")
     if kernel is None:

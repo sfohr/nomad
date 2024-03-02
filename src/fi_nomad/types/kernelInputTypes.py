@@ -26,7 +26,7 @@ class AggressiveMomentumAdditionalParameters(NamedTuple):
 
     The hyperparameters determine the size of the extrapolation step (`momentum_beta`) on
     `low_rank_candidate_L` and `utility_matrix_Z` adaptively, conditional on the
-    direction of change of the objective function `||X - max(0, \Theta)||^2_F` in every
+    direction of change of the objective function `||X - max(0, \\Theta)||^2_F` in every
     iteration after the initial one.
 
     Parameters:
