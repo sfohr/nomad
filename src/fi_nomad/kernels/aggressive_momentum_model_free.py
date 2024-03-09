@@ -86,6 +86,90 @@ class AggressiveMomentumModelFreeKernel(KernelBase):
             indata.low_rank_candidate_L
         )
 
+    def increase_momentum_parameters(self) -> None:
+        """Increase momentum beta and update beta's upper bound beta_bar
+
+        If the loss between previous and current step decreased, the momentum
+        parameter beta is increased by factor gamma until it reaches it's upper
+        bound beta_bar. beta's upper bound beta_bar is increased by factor gamma_bar.
+        A method call increases the magnitude of the momentum steps performed on
+        utility matrix Z and low rank candidate L.
+
+        Returns:
+            None
+        """
+        self.momentum_beta = increase_momentum_beta(
+            self.momentum_beta,
+            self.momentum_increase_factor_gamma,
+            self.beta_upper_bound_beta_bar,
+        )
+        self.beta_upper_bound_beta_bar = increase_momentum_upper_bound_beta_bar(
+            self.beta_upper_bound_beta_bar,
+            self.momentum_upper_bound_increase_factor_gamma_bar,
+        )
+
+    def decrease_momentum_parameters(self) -> None:
+        """Decrease momentum beta by divisor eta and assign previous beta to beta_bar
+
+        If the loss between previous and current step increased, the momentum
+        parameter beta is decreased by dividing it by eta, thereby reducing the
+        magnitude of the momentum terms. Furthermore, the upper bound for beta
+        (beta_bar) is set to the last beta that decreased the loss.
+
+        Returns:
+            None
+        """
+        last_beta_that_decreased_error = self.momentum_beta
+        self.momentum_beta = decrease_momentum_beta(
+            self.momentum_beta, self.momentum_decrease_divisor_eta
+        )
+
+        self.beta_upper_bound_beta_bar = last_beta_that_decreased_error
+
+    def accept_matrix_updates(self) -> None:
+        """Accept updates on utility matrix Z and low rank candidate L
+
+        Accepts updates by copying the current utility matrix and low rank
+        candidate matrix to their previous versions.
+
+        Returns:
+            None
+        """
+        np.copyto(self.previous_utility_matrix_Z, self.utility_matrix_Z)
+        np.copyto(self.previous_low_rank_candidate_L, self.low_rank_candidate_L)
+
+    def reject_matrix_updates(self) -> None:
+        """Reject updates on utility matrix Z and low rank candidate L
+
+        Rejects updates by copying the previous low rank candidate L to the
+        current low rank candidate L and the previous utility matrix Z to current.
+
+        Returns:
+            None
+        """
+        np.copyto(self.utility_matrix_Z, self.previous_utility_matrix_Z)
+        np.copyto(self.low_rank_candidate_L, self.previous_low_rank_candidate_L)
+
+    def loss_is_decreasing(self) -> bool:
+        """Checks if loss between previous and current step decreased
+
+        Computes the Frobenius norm between utility matrix Z and low rank candidate L
+        for the current and the previous iteration and checks if the current value
+        is lower than than the previous.
+
+        Returns:
+            `True`if decreasing, else `False`.
+        """
+        current_loss = compute_loss(
+            self.utility_matrix_Z, self.low_rank_candidate_L, LossType.FROBENIUS
+        )
+        previous_loss = compute_loss(
+            self.previous_utility_matrix_Z,
+            self.previous_low_rank_candidate_L,
+            LossType.FROBENIUS,
+        )
+        return current_loss < previous_loss
+
     def step(self) -> None:
         """Performs a single step of the aggressive momentum model-free algorithm.
 
@@ -105,42 +189,12 @@ class AggressiveMomentumModelFreeKernel(KernelBase):
                 self.momentum_beta,
             )
             if self.elapsed_iterations > 2:
-                loss_decreasing = compute_loss(
-                    self.utility_matrix_Z,
-                    self.low_rank_candidate_L,
-                ) < compute_loss(
-                    self.previous_utility_matrix_Z,
-                    self.previous_low_rank_candidate_L,
-                )
-                if loss_decreasing:
-                    # TODO: update steps in class method?
-                    self.momentum_beta = increase_momentum_beta(
-                        self.momentum_beta,
-                        self.momentum_increase_factor_gamma,
-                        self.beta_upper_bound_beta_bar,
-                    )
-                    self.beta_upper_bound_beta_bar = (
-                        increase_momentum_upper_bound_beta_bar(
-                            self.beta_upper_bound_beta_bar,
-                            self.momentum_upper_bound_increase_factor_gamma_bar,
-                        )
-                    )
-                    self.momentum_beta_history.append(self.momentum_beta)
-
-                    np.copyto(self.previous_utility_matrix_Z, self.utility_matrix_Z)
-                    np.copyto(
-                        self.previous_low_rank_candidate_L, self.low_rank_candidate_L
-                    )
+                if self.loss_is_decreasing():
+                    self.increase_momentum_parameters()
+                    self.accept_matrix_updates()
                 else:
-                    self.momentum_beta = decrease_momentum_beta(
-                        self.momentum_beta, self.momentum_decrease_divisor_eta
-                    )
-                    self.momentum_beta_history.append(self.momentum_beta)
-                    self.beta_upper_bound_beta_bar = self.momentum_beta_history[-2]
-
-                    np.copyto(
-                        self.low_rank_candidate_L, self.previous_low_rank_candidate_L
-                    )
+                    self.decrease_momentum_parameters()
+                    self.reject_matrix_updates()
 
         utility_matrix_Z = construct_utility(
             self.low_rank_candidate_L, self.sparse_matrix_X
