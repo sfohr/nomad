@@ -74,7 +74,7 @@ def validate_hyperparameters(
     gamma_bar = custom_params.momentum_upper_bound_increase_factor_gamma_bar
     eta = custom_params.momentum_decrease_divisor_eta
 
-    if not 0.0 < beta < 1.0:
+    if not 0.0 <= beta <= 1.0:
         raise ValueError(f"`momentum_beta` ({beta}) must be in the range (0, 1).")
     if not gamma_bar > 1.0:
         raise ValueError(f"`gamma_bar` ({gamma_bar}) must be greater than 1.0.")
