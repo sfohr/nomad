@@ -1,14 +1,17 @@
 """Utility functions for Aggressive Momentum Model-Free Kernel from Seraghiti et. al. 2023
 
 Functions:
-    xxxx: __description__
+    increase_momentum_beta: Increase momentum parameter beta by factor gamma until upper bound beta_bar.
+    increase_momentum_upper_bound_beta_bar: Increase upper bound for momentum parameter beta by factor gamma_bar.
+    decrease_momentum_beta: Decrease momentum parameter beta by divisor eta.
+    validate_hyperparameters: Validate hyperparameter constraints for the aggressive momentum NMD kernel.
 """
 
 from fi_nomad.types import AggressiveMomentumAdditionalParameters
 
 
 def increase_momentum_beta(beta: float, gamma: float, beta_bar: float) -> float:
-    """Increase momentum parameter beta
+    """Increase momentum parameter beta by factor gamma until upper bound beta_bar
 
     Args:
         beta: Current momentum parameter `beta`.
@@ -22,7 +25,7 @@ def increase_momentum_beta(beta: float, gamma: float, beta_bar: float) -> float:
 
 
 def increase_momentum_upper_bound_beta_bar(beta_bar: float, gamma_bar: float) -> float:
-    """Increase upper bound for momentum parameter beta.
+    """Increase upper bound for momentum parameter beta by factor gamma_bar
 
     Args:
         beta_bar: Current upper bound for momentum parameter beta.
@@ -50,7 +53,7 @@ def decrease_momentum_beta(beta: float, eta: float) -> float:
 def validate_hyperparameters(
     custom_params: AggressiveMomentumAdditionalParameters,
 ) -> None:
-    """Validate hyperparameters for the aggressive momentum NMD kernel
+    """Validate hyperparameter constraints for the aggressive momentum NMD kernel
 
     Such that:
         - :math:`\\beta \\in (0, 1)`

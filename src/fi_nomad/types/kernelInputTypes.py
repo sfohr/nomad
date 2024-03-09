@@ -3,6 +3,8 @@ sets will also be included here.
 
 Classes:
     KernelInputType: Standard data object for initializing kernels.
+    AggressiveMomentumAdditionalParameters: Data object containing algorithm-specific
+        parameters.
 
 """
 

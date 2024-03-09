@@ -1,7 +1,7 @@
-"""Defines the aggressive momentum model-free kernel
+"""Defines the aggressive momentum model-free kernel from Seraghiti et. al. (2023)
 
 Classes:
-    AggressiveMomentumModelFreeKernel: XXXXX.
+    AggressiveMomentumModelFreeKernel: Model-free kernel with Nesterov-type extrapolation.
 
 """
 
@@ -27,7 +27,33 @@ from fi_nomad.util import find_low_rank, compute_loss, two_part_factor
 
 
 class AggressiveMomentumModelFreeKernel(KernelBase):
-    """Aggressive momentum model-free algorithm as described in Seraghiti et. al. (2023)"""
+    """Aggressive momentum model-free algorithm as described in Seraghiti et. al. (2023)
+
+    The algorithm constructs a utility matrix Z that enforces the
+    non-zero values of the sparse matrix, extrapolates Z with a momentum term
+    and uses SVD on Z to create a candidate low-rank matrix L which is also
+    extrapolated (in the subsequent step to not alter the rank).
+    The size of the extrapolation steps on Z and L is determined by
+    hyperparameter `momentum_beta` which is heuristically adapted conditional
+    on the loss.
+
+    If loss is decreasing:
+        - increase `momentum_beta`by factor `momentum_increase_factor_gamma` until it
+        reaches `beta_upper_bound_beta_bar`.
+        - accept updates on Z and L.
+    if loss is increasing:
+        - decrease `momentum_beta` by `momentum_decrease_divisor_eta`.
+        - assign last value of `momentum_beta` that decreased the loss as the new
+        `beta_upper_bound_beta_bar`.
+        - reject updates on Z and L.
+
+    Note: This implementation diverges from Seraghiti et al.'s original Matlab
+        implementation in terms of specific operations order and the handling of the
+        extrapolation step on L to avoid additional parameters for iteration control.
+
+    For `momentum_beta = 0`, the algorithm simplifies to the base model-free
+    algorithm.
+    """
 
     def __init__(
         self,
@@ -61,8 +87,17 @@ class AggressiveMomentumModelFreeKernel(KernelBase):
         )
 
     def step(self) -> None:
-        """xxxxxx"""
+        """Performs a single step of the aggressive momentum model-free algorithm.
 
+        It first applies momentum to the low-rank candidate L if the elapsed
+        iterations is greater than 0. Then if elapsed iteration is greater than 2,
+        it checks if the loss is decreasing and adjusts the momentum parameters accordingly.
+        Finally, it constructs utility matrix Z, applies momentum to it, and
+        finds the low-rank candidate L.
+
+        Returns:
+            None
+        """
         if self.elapsed_iterations > 0:
             self.low_rank_candidate_L = apply_momentum(
                 self.low_rank_candidate_L,
