@@ -213,7 +213,7 @@ class AggressiveMomentumModelFreeKernel(KernelBase):
 
         if self.tolerance is not None:
             self.loss = compute_loss(
-                utility_matrix_Z, self.low_rank_candidate_L, LossType.FROBENIUS
+                self.utility_matrix_Z, self.low_rank_candidate_L, LossType.FROBENIUS
             )
 
     def running_report(self) -> str:
