@@ -48,4 +48,4 @@ class AggressiveMomentumAdditionalParameters(NamedTuple):
     momentum_decrease_divisor_eta: float = 2.5
 
 
-KernelSpecificParameters = Union[float, int, AggressiveMomentumAdditionalParameters]
+KernelSpecificParameters = Union[AggressiveMomentumAdditionalParameters]
