@@ -1,10 +1,13 @@
 """Utility functions for Aggressive Momentum Model-Free Kernel from Seraghiti et. al. 2023
 
 Functions:
-    increase_momentum_beta: Increase momentum parameter beta by factor gamma until upper bound beta_bar.
-    increase_momentum_upper_bound_beta_bar: Increase upper bound for momentum parameter beta by factor gamma_bar.
+    increase_momentum_beta: Increase momentum parameter beta by factor gamma until 
+        upper bound beta_bar.
+    increase_momentum_upper_bound_beta_bar: Increase upper bound for momentum 
+        parameter beta by factor gamma_bar.
     decrease_momentum_beta: Decrease momentum parameter beta by divisor eta.
-    validate_hyperparameters: Validate hyperparameter constraints for the aggressive momentum NMD kernel.
+    validate_hyperparameters: Validate hyperparameter constraints for the 
+        aggressive momentum NMD kernel.
 """
 
 from fi_nomad.types import AggressiveMomentumAdditionalParameters
