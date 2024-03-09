@@ -21,6 +21,7 @@ from fi_nomad.types import (
     AggressiveMomentumModelFreeKernelReturnType,
     KernelReturnType,
     LossType,
+    FloatArrayType,
 )
 from fi_nomad.util import find_low_rank, compute_loss, two_part_factor
 
@@ -35,22 +36,29 @@ class AggressiveMomentumModelFreeKernel(KernelBase):
     ) -> None:
         super().__init__(indata)
 
+        # Hyperparameters
         validate_hyperparameters(custom_params)
 
-        self.beta_upper_bound_beta_bar = 1.0
-        self.momentum_beta = custom_params.momentum_beta
-        self.momentum_beta_history = [custom_params.momentum_beta]
-        self.momentum_increase_factor_gamma = (
+        self.beta_upper_bound_beta_bar: float = 1.0
+        self.momentum_beta: float = custom_params.momentum_beta
+        self.momentum_increase_factor_gamma: float = (
             custom_params.momentum_increase_factor_gamma
         )
-        self.momentum_upper_bound_increase_factor_gamma_bar = (
+        self.momentum_upper_bound_increase_factor_gamma_bar: float = (
             custom_params.momentum_upper_bound_increase_factor_gamma_bar
         )
-        self.momentum_decrease_divisor_eta = custom_params.momentum_decrease_divisor_eta
+        self.momentum_decrease_divisor_eta: float = (
+            custom_params.momentum_decrease_divisor_eta
+        )
 
-        self.previous_low_rank_candidate_L = indata.low_rank_candidate_L.copy()
-        self.utility_matrix_Z = np.empty_like(indata.low_rank_candidate_L)
-        self.previous_utility_matrix_Z = indata.sparse_matrix_X.copy()
+        # Initial matrices
+        self.previous_low_rank_candidate_L: FloatArrayType = (
+            indata.low_rank_candidate_L.copy()
+        )
+        self.previous_utility_matrix_Z: FloatArrayType = indata.sparse_matrix_X.copy()
+        self.utility_matrix_Z: FloatArrayType = np.empty_like(
+            indata.low_rank_candidate_L
+        )
 
     def step(self) -> None:
         """xxxxxx"""
