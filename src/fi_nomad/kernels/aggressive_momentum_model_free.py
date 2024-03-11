@@ -81,10 +81,8 @@ class AggressiveMomentumModelFreeKernel(KernelBase):
         self.previous_low_rank_candidate_L: FloatArrayType = (
             indata.low_rank_candidate_L.copy()
         )
-        self.previous_utility_matrix_Z: FloatArrayType = indata.sparse_matrix_X.copy()
-        self.utility_matrix_Z: FloatArrayType = np.empty_like(
-            indata.low_rank_candidate_L
-        )
+        self.previous_utility_matrix_Z: FloatArrayType = indata.sparse_matrix_X
+        self.utility_matrix_Z: FloatArrayType = indata.sparse_matrix_X
 
     def increase_momentum_parameters(self) -> None:
         """Increase momentum beta and update beta's upper bound beta_bar
@@ -172,6 +170,7 @@ class AggressiveMomentumModelFreeKernel(KernelBase):
 
     def step(self) -> None:
         """Performs a single step of the aggressive momentum model-free algorithm.
+
 
         It first applies momentum to the low-rank candidate L if the elapsed
         iterations is greater than 0. Then if elapsed iteration is greater than 2,
