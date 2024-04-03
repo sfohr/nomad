@@ -67,6 +67,9 @@ exclude = [
     'conftest.py'
 ]
 
+[tool.pylint.main]
+fail-under = 9.5
+
 [tool.pylint."MESSAGES CONTROL"]
 good-names-rgxs = "[a-z_1234567890]+[A-Z]?"
 ignore = "__init__.py"
