@@ -6,7 +6,7 @@ Classes:
 """
 
 from fi_nomad.kernels.kernel_base import KernelBase
-from fi_nomad.util.base_model_free_util import construct_utility
+from fi_nomad.util.model_free_util import construct_utility
 
 from fi_nomad.types import (
     BaseModelFreeKernelReturnType,

@@ -5,6 +5,7 @@ Classes:
     BaseModelFreeKernelReturnType: Return from base naive kernel method.
     SingleVarianceGaussianModelKernelReturnType: Data with scalar variance.
     RowwiseVarianceGaussianModelKernelReturnType: Data with rowwise variance.
+    Momentum3BlockModelFreeKernelReturnType: Return for momentum 3-block kernel method.
     KernelReturnType: Combination of data and summary string.
 
 """
@@ -49,10 +50,16 @@ class RowwiseVarianceGaussianModelKernelReturnType(KernelReturnBase):
     variance: FloatArrayType
 
 
+@dataclass
+class Momentum3BlockModelFreeKernelReturnType(KernelReturnBase):
+    """Momentum 3-block method returns only the reconstruction. (Adds nothing to base.)"""
+
+
 KernelReturnDataType = Union[
     BaseModelFreeKernelReturnType,
     SingleVarianceGaussianModelKernelReturnType,
     RowwiseVarianceGaussianModelKernelReturnType,
+    Momentum3BlockModelFreeKernelReturnType,
 ]
 
 
