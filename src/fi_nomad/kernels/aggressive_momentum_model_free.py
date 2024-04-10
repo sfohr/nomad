@@ -81,8 +81,8 @@ class AggressiveMomentumModelFreeKernel(KernelBase):
         self.previous_low_rank_candidate_L: FloatArrayType = (
             indata.low_rank_candidate_L.copy()
         )
-        self.previous_utility_matrix_Z: FloatArrayType = indata.sparse_matrix_X
-        self.utility_matrix_Z: FloatArrayType = indata.sparse_matrix_X
+        self.previous_utility_matrix_Z: FloatArrayType = indata.sparse_matrix_X.copy()
+        self.utility_matrix_Z: FloatArrayType = indata.sparse_matrix_X.copy()
 
     def increase_momentum_parameters(self) -> None:
         """Increase momentum beta and update beta's upper bound beta_bar
