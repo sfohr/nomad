@@ -75,7 +75,19 @@ def test_validate_hyperparameters_valid_params() -> None:
     validate_hyperparameters(params)  # No exception should be raised
 
 
-def test_validate_hyperparameters_invalid_momentum_beta() -> None:
+def test_validate_hyperparameters_invalid_momentum_beta_too_low() -> None:
+    params = AggressiveMomentumAdditionalParameters(
+        momentum_beta=-0.1,
+        momentum_increase_factor_gamma=1.2,
+        momentum_upper_bound_increase_factor_gamma_bar=1.1,
+        momentum_decrease_divisor_eta=1.5,
+    )
+    with pytest.raises(ValueError) as excinfo:
+        validate_hyperparameters(params)
+    assert str(excinfo.value) == "`momentum_beta` (-0.1) must be in the range (0, 1)."
+
+
+def test_validate_hyperparameters_invalid_momentum_beta_too_high() -> None:
     params = AggressiveMomentumAdditionalParameters(
         momentum_beta=1.5,
         momentum_increase_factor_gamma=1.2,
@@ -87,19 +99,31 @@ def test_validate_hyperparameters_invalid_momentum_beta() -> None:
     assert str(excinfo.value) == "`momentum_beta` (1.5) must be in the range (0, 1)."
 
 
-def test_validate_hyperparameters_invalid_gamma_bar() -> None:
+def test_validate_hyperparameters_invalid_gamma_bar_too_low() -> None:
     params = AggressiveMomentumAdditionalParameters(
         momentum_beta=0.5,
         momentum_increase_factor_gamma=1.2,
-        momentum_upper_bound_increase_factor_gamma_bar=0.9,
+        momentum_upper_bound_increase_factor_gamma_bar=1.0,
         momentum_decrease_divisor_eta=1.5,
     )
     with pytest.raises(ValueError) as excinfo:
         validate_hyperparameters(params)
-    assert str(excinfo.value) == "`gamma_bar` (0.9) must be greater than 1.0."
+    assert str(excinfo.value) == "`gamma_bar` (1.0) must be greater than 1.0."
 
 
-def test_validate_hyperparameters_invalid_gamma_bar_gamma() -> None:
+def test_validate_hyperparameters_invalid_gamma_bar_equal_to_gamma() -> None:
+    params = AggressiveMomentumAdditionalParameters(
+        momentum_beta=0.5,
+        momentum_increase_factor_gamma=1.2,
+        momentum_upper_bound_increase_factor_gamma_bar=1.2,
+        momentum_decrease_divisor_eta=1.5,
+    )
+    with pytest.raises(ValueError) as excinfo:
+        validate_hyperparameters(params)
+    assert str(excinfo.value) == "`gamma_bar` (1.2) must be less than `gamma` (1.2)."
+
+
+def test_validate_hyperparameters_invalid_gamma_bar_higher_than_gamma() -> None:
     params = AggressiveMomentumAdditionalParameters(
         momentum_beta=0.5,
         momentum_increase_factor_gamma=1.2,
@@ -111,7 +135,19 @@ def test_validate_hyperparameters_invalid_gamma_bar_gamma() -> None:
     assert str(excinfo.value) == "`gamma_bar` (1.5) must be less than `gamma` (1.2)."
 
 
-def test_validate_hyperparameters_invalid_gamma_eta() -> None:
+def test_validate_hyperparameters_invalid_gamma_equal_to_eta() -> None:
+    params = AggressiveMomentumAdditionalParameters(
+        momentum_beta=0.5,
+        momentum_increase_factor_gamma=1.2,
+        momentum_upper_bound_increase_factor_gamma_bar=1.1,
+        momentum_decrease_divisor_eta=1.0,
+    )
+    with pytest.raises(ValueError) as excinfo:
+        validate_hyperparameters(params)
+    assert str(excinfo.value) == "`gamma` (1.2) must be less than `eta` (1.0)."
+
+
+def test_validate_hyperparameters_invalid_gamma_higher_than_eta() -> None:
     params = AggressiveMomentumAdditionalParameters(
         momentum_beta=0.5,
         momentum_increase_factor_gamma=1.2,

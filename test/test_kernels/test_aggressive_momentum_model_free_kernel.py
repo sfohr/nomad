@@ -44,6 +44,36 @@ def fixture_with_tol() -> Fixture:
     return (indata, kernel_params, kernel)
 
 
+def test_aggressive_momentum_kernel_instantiation(fixture_with_tol: Fixture) -> None:
+    (indata, kernel_params, kernel) = fixture_with_tol
+    # hyperparameters
+    assert kernel.momentum_beta == kernel_params.momentum_beta
+    assert (
+        kernel.momentum_upper_bound_increase_factor_gamma_bar
+        == kernel_params.momentum_upper_bound_increase_factor_gamma_bar
+    )
+    assert (
+        kernel.momentum_increase_factor_gamma
+        == kernel_params.momentum_increase_factor_gamma
+    )
+    assert (
+        kernel.momentum_decrease_divisor_eta
+        == kernel_params.momentum_decrease_divisor_eta
+    )
+
+    # matrices
+    np.testing.assert_array_equal(
+        kernel.low_rank_candidate_L, indata.low_rank_candidate_L
+    )
+    np.testing.assert_array_equal(
+        kernel.previous_low_rank_candidate_L, indata.low_rank_candidate_L
+    )
+    np.testing.assert_array_equal(kernel.utility_matrix_Z, indata.sparse_matrix_X)
+    np.testing.assert_array_equal(
+        kernel.previous_utility_matrix_Z, indata.sparse_matrix_X
+    )
+
+
 @patch(f"{PKG}.compute_loss")
 @patch(f"{PKG}.find_low_rank")
 @patch(f"{PKG}.apply_momentum")
@@ -72,13 +102,15 @@ def test_aggressive_momentum_first_kernel_step(
     mock_find_low_rank.return_value = np.full(shape_X, 6.0)
     mock_compute_loss.return_value = 3.0
 
+    initial_utility_Z = kernel.utility_matrix_Z
+
     kernel.step()
     mock_construct.assert_called_once_with(
         indata.low_rank_candidate_L, indata.sparse_matrix_X
     )
     mock_apply_momentum.assert_called_once_with(
         mock_construct.return_value,
-        indata.sparse_matrix_X,
+        initial_utility_Z,
         kernel.momentum_beta,
     )
     mock_find_low_rank.assert_called_once_with(
@@ -106,7 +138,8 @@ def test_aggressive_momentum_loss_is_decreasing_returns_true_when_current_is_low
     mock_compute_loss: Mock, fixture_with_tol: Fixture
 ) -> None:
     (_, _, kernel) = fixture_with_tol
-    mock_compute_loss.side_effect = [1.0, 2.0]  # current & prev. loss
+    kernel.parameter_update_loss = 2.0  # previous loss
+    mock_compute_loss.side_effect = [1.0]  # current loss
 
     result = kernel.loss_is_decreasing()
     assert result is True
@@ -117,7 +150,8 @@ def test_aggressive_momentum_loss_is_decreasing_returns_true_when_current_is_hig
     mock_compute_loss: Mock, fixture_with_tol: Fixture
 ) -> None:
     (_, _, kernel) = fixture_with_tol
-    mock_compute_loss.side_effect = [2.0, 1.0]  # current & prev. loss
+    kernel.parameter_update_loss = 1.0  # previous loss
+    mock_compute_loss.side_effect = [2.0]  # current loss
 
     result = kernel.loss_is_decreasing()
     assert result is False
@@ -128,7 +162,8 @@ def test_aggressive_momentum_loss_is_decreasing_returns_true_when_current_is_equ
     mock_compute_loss: Mock, fixture_with_tol: Fixture
 ) -> None:
     (_, _, kernel) = fixture_with_tol
-    mock_compute_loss.side_effect = [1.0, 1.0]  # current & prev. loss
+    kernel.parameter_update_loss = 1.0  # previous loss
+    mock_compute_loss.side_effect = [1.0]  # current loss
 
     result = kernel.loss_is_decreasing()
     assert result is False
