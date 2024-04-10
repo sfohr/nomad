@@ -104,6 +104,10 @@ def test_base_model_free_kernel_running_report(fixture_no_tol: Fixture) -> None:
 def test_base_model_free_kernel_final_report(fixture_no_tol: Fixture) -> None:
     (indata, kernel) = fixture_no_tol
 
+    # rank of the low rank candidate before a step was performed is 1,
+    # due to initialization as `np.ones(...)`
+    kernel.target_rank = 1
+
     result_1 = kernel.report()
     assert "Not Tracked" in result_1.summary
     np.testing.assert_allclose(

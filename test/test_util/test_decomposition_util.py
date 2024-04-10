@@ -113,7 +113,8 @@ def test_find_low_rank_throws_on_unknown_strategy() -> None:
         _ = find_low_rank(util, 2, util, cast(SVDStrategy, -5))
 
 
-def test_two_part_factor() -> None:
+def test_two_part_factor_rank_unknown() -> None:
+
     # fmt: off
     rank_two = np.array([
         [ 1.,  0.1,  2.,  -0.3],
@@ -123,6 +124,24 @@ def test_two_part_factor() -> None:
     ])
     # fmt: on
     (A, B) = two_part_factor(rank_two)
+    np.testing.assert_allclose(rank_two, A @ B)
+    assert A.shape == (4, 2)
+    assert B.shape == (2, 4)
+
+
+@patch("numpy.linalg.matrix_rank")
+def test_two_part_factor_rank_known(mock_matrix_rank: Mock) -> None:
+    # fmt: off
+    rank_two = np.array([
+        [ 1.,  0.1,  2.,  -0.3],
+        [ 5., -1.,  10.,   3. ],
+        [ 7.,  1.,  14.,  -3. ],
+        [ 9.,  2.,  18.,  -6. ]
+    ])
+    # fmt: on
+    rank = 2
+    (A, B) = two_part_factor(rank_two, rank)
+    mock_matrix_rank.assert_not_called()
     np.testing.assert_allclose(rank_two, A @ B)
     assert A.shape == (4, 2)
     assert B.shape == (2, 4)

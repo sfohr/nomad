@@ -200,7 +200,7 @@ class RowwiseVarianceGaussianModelKernel(KernelBase):
             + f"likelihood {self.likelihood}"
         )
         data = RowwiseVarianceGaussianModelKernelReturnType(
-            two_part_factor(self.model_means_L),
+            two_part_factor(self.model_means_L, self.target_rank),
             self.model_variance_sigma_squared,
         )
         return KernelReturnType(text, data)
