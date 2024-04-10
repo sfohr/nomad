@@ -62,6 +62,8 @@ class AggressiveMomentumModelFreeKernel(KernelBase):
     ) -> None:
         super().__init__(indata)
 
+        self.parameter_update_loss = float("inf")
+
         # Hyperparameters
         validate_hyperparameters(custom_params)
 
@@ -158,15 +160,12 @@ class AggressiveMomentumModelFreeKernel(KernelBase):
         Returns:
             `True`if decreasing, else `False`.
         """
-        current_loss = compute_loss(
+        previous_parameter_update_loss = self.parameter_update_loss
+
+        self.parameter_update_loss = compute_loss(
             self.utility_matrix_Z, self.low_rank_candidate_L, LossType.FROBENIUS
         )
-        previous_loss = compute_loss(
-            self.previous_utility_matrix_Z,
-            self.previous_low_rank_candidate_L,
-            LossType.FROBENIUS,
-        )
-        return current_loss < previous_loss
+        return self.parameter_update_loss < previous_parameter_update_loss
 
     def step(self) -> None:
         """Performs a single step of the aggressive momentum model-free algorithm.
