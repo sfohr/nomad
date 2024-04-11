@@ -2,12 +2,11 @@
 
 Functions:
     find_low_rank: Compute low-rank approximation to input matrix using stated SVD strategy.
-    two_part_factor: Factor M x N matrix of rank r into A (M x r), B (r x N)
-    two_part_factor_known_rank: Factor M x N matrix into A (M x r), B (r x N) with known rank r.
-
+    two_part_factor: Factor M x N matrix of rank r into A (M x r), B (r x N) with 
+        optional known rank.
 """
 
-from typing import Tuple
+from typing import Tuple, Optional
 import numpy as np
 from sklearn.decomposition import TruncatedSVD  # type: ignore
 
@@ -124,36 +123,21 @@ def find_low_rank(
     raise ValueError("Unsupported SVD strategy.")
 
 
-def two_part_factor(matrix: FloatArrayType) -> Tuple[FloatArrayType, FloatArrayType]:
+def two_part_factor(
+    matrix: FloatArrayType, rank: Optional[int] = None
+) -> Tuple[FloatArrayType, FloatArrayType]:
     """Factor matrix into two rectangular matrices with inner dimension matching its rank.
 
     Args:
         matrix: Low-rank matrix to factor into two
+        rank: The desired inner dimension. Defaults to `None`, in this case
+            detects the rank using `np.linalg.matrix_rank(matrix)`
 
     Returns:
         Two matrices whose product is the original matrix.
     """
-    rank = np.linalg.matrix_rank(matrix)
-    (svd_U, svd_S, svd_Vt) = np.linalg.svd(matrix)
-    inner_a = np.zeros((matrix.shape[0], rank))
-    np.fill_diagonal(inner_a, svd_S)
-    part_A = svd_U @ inner_a
-    part_B = np.pad(np.eye(rank), ((0, 0), (0, matrix.shape[1] - rank))) @ svd_Vt
-    return (part_A, part_B)
-
-
-def two_part_factor_known_rank(
-    matrix: FloatArrayType, rank: int
-) -> Tuple[FloatArrayType, FloatArrayType]:
-    """Factor matrix into two rectangular matrices with inner dimension `rank`
-
-    Args:
-        matrix: Low-rank matrix to factor into two
-        rank: The desired inner dimension
-
-    Returns:
-        Two matrices whose product is the original matrix.
-    """
+    if rank is None:
+        rank = np.linalg.matrix_rank(matrix)
     (svd_U, svd_S, svd_Vt) = np.linalg.svd(matrix)
     inner_a = np.zeros((matrix.shape[0], rank))
     np.fill_diagonal(inner_a, svd_S)

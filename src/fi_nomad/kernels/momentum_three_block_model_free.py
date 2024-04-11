@@ -20,7 +20,7 @@ from fi_nomad.types import (
     LossType,
 )
 
-from fi_nomad.util import compute_loss, two_part_factor_known_rank
+from fi_nomad.util import compute_loss, two_part_factor
 
 
 class Momentum3BlockModelFreeKernel(KernelBase):
@@ -54,7 +54,7 @@ class Momentum3BlockModelFreeKernel(KernelBase):
             self.candidate_factor_H = custom_params.candidate_factor_H0
         else:
             # if W0, H0 are not given, factorize low_rank_candidate_L
-            (candidate_factor_W0, candidate_factor_H0) = two_part_factor_known_rank(
+            (candidate_factor_W0, candidate_factor_H0) = two_part_factor(
                 self.low_rank_candidate_L,
                 self.target_rank,
             )
