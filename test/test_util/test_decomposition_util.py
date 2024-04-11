@@ -114,7 +114,6 @@ def test_find_low_rank_throws_on_unknown_strategy() -> None:
 
 
 def test_two_part_factor_rank_unknown() -> None:
-
     # fmt: off
     rank_two = np.array([
         [ 1.,  0.1,  2.,  -0.3],
