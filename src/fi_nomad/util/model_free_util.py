@@ -1,5 +1,4 @@
-"""Utility functions for base model-free kernels. Most likely will not be expanded, even as other
-naive kernels are added.
+"""Utility functions for base model-free kernels. 
 
 Functions:
     construct_utility: Construct candidate by enforcing base matrix constraints on an SVD result.
@@ -69,7 +68,7 @@ def apply_momentum(
         X = apply_momentum(X, X_previous, beta=1.0)
 
         # Setting beta to 0 will disable the momentum step and just return X
-        post_momentum_X = apply_momentum(X, X_previous, beta=1.0)
+        post_momentum_X = apply_momentum(X, X_previous, beta=0.0)
         assert np.array_equal(X, post_momentum_X)
     """
     return current_X + beta * (current_X - previous_X)
