@@ -5,6 +5,7 @@ from pytest import raises
 from fi_nomad.types.enums import KernelStrategy, DiagnosticLevel
 from fi_nomad.types.types import DiagnosticDataConfig
 from fi_nomad.kernels.kernel_base import KernelBase
+from fi_nomad.types.kernelInputTypes import Momentum3BlockAdditionalParameters
 
 
 from fi_nomad.util.factory_util import (
@@ -36,11 +37,15 @@ def test_insantiate_kernel_throws_on_instantiation_failure(mock_base: Mock) -> N
         _ = instantiate_kernel(KernelStrategy.BASE_MODEL_FREE, mock_data_in)
 
 
+@patch(f"{PKG}.Momentum3BlockModelFreeKernel", autospec=True)
 @patch(f"{PKG}.RowwiseVarianceGaussianModelKernel", autospec=True)
 @patch(f"{PKG}.SingleVarianceGaussianModelKernel", autospec=True)
 @patch(f"{PKG}.BaseModelFree", autospec=True)
 def test_instantiate_kernel_honors_strategy_selection(
-    mock_base: Mock, mock_svgauss: Mock, mock_rwgauss: Mock
+    mock_base: Mock,
+    mock_svgauss: Mock,
+    mock_rwgauss: Mock,
+    mock_momentum3block: Mock,
 ) -> None:
     mock_data_in = Mock()
     base_response = instantiate_kernel(KernelStrategy.BASE_MODEL_FREE, mock_data_in)
@@ -51,6 +56,12 @@ def test_instantiate_kernel_honors_strategy_selection(
     mock_svgauss.assert_called_once()
     _ = instantiate_kernel(KernelStrategy.GAUSSIAN_MODEL_ROWWISE_VARIANCE, mock_data_in)
     mock_rwgauss.assert_called_once()
+    _ = instantiate_kernel(
+        KernelStrategy.MOMENTUM_3_BLOCK_MODEL_FREE,
+        mock_data_in,
+        kernel_params=Momentum3BlockAdditionalParameters(),
+    )
+    mock_momentum3block.assert_called_once()
 
 
 def test_do_diagnostic_configuration_clears_fn_on_no_config() -> None:
