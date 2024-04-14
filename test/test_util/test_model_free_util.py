@@ -46,5 +46,17 @@ def test_apply_momentum() -> None:
         [0, 3, -0.5]
     ])
     # fmt: on
+
+    # momentum beta = 0.5
     result = apply_momentum(current_matrix, previous_matrix, momentum_parameter)
     np.testing.assert_array_equal(expected_matrix, result)
+
+    # momentum beta = 1.0 doubles the step taken from previous to the current iter
+    result = apply_momentum(current_matrix, previous_matrix, beta=1.0)
+    np.testing.assert_array_equal(
+        result - previous_matrix, 2 * (current_matrix - previous_matrix)
+    )
+
+    # momentum beta = 0.0 does not alter the matrix at all
+    result = apply_momentum(current_matrix, previous_matrix, beta=0.0)
+    np.testing.assert_array_equal(result, current_matrix)
