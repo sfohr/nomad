@@ -8,10 +8,11 @@ In the problem setting, given a sparse nonnegative matrix **X**, we would like t
 target rank *r*. Applying a
 [ReLU nonlinearity](https://en.wikipedia.org/wiki/Rectifier_(neural_networks)) to **L** allows lossless recovery of **X**.
 
-Three methods of estimating the low-rank representation **L** are currently offered:
+Four methods of estimating the low-rank representation **L** are currently offered:
  - a model-free method, which returns only the low-rank approximation
  - a method which returns the means-and-variance parameters (**L**, *v*) of a Gaussian model, as described in Saul (2022)
  - an extension of the Gaussian-model method which uses a different variance parameter per row
+ - an extension of the base model-free algorithm using matrix least squares (vs. SVD) as well as momentum terms on **L** and **Z** (Seraghiti, et. al. 2023)
 
 All methods operate in an iterative fashion; the model-based methods are particularly analogous to expectation-maximization,
 in that they iteratively refine a model's parameters and recompute the posterior probability under the new parameters.
@@ -95,6 +96,8 @@ Three parameters are required:
   - `KernelStrategy.GAUSSIAN_MODEL_ROWWISE_VARIANCE` -- a Gaussian model similar to that described in
     Saul (2022), but which computes a different variance value for each row instead of using a single
     global/mean variance
+  - `KernelStrategy.MOMENTUM_3_BLOCK_MODEL_FREE` -- an extension of the base model-free algorithm,
+    which uses the parametrization $L=WH$ to separately update $W$ and $H$, using matrix least squares, and extrapolating $Z$ and $L$ with momentum terms.
 
 Additionally, the following options are exposed:
 
@@ -133,3 +136,5 @@ Lawrence K Saul (2022), "A Nonlinear Matrix Decomposition for Mining the Zeros o
 [https://doi.org/10.1137/21M1405769](https://doi.org/10.1137/21M1405769)
 (Preprint: https://cseweb.ucsd.edu/~saul/papers/preprints/simods22_preprint.pdf)
 
+Seraghiti, G., et. al. (2023), "Accelerated Algorithms for Nonlinear Matrix Decomposition with the ReLU Function" 
+[https://arxiv.org/abs/2305.08687](https://arxiv.org/abs/2305.08687)
