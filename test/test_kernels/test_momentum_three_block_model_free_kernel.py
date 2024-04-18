@@ -56,6 +56,42 @@ def fixture_no_tol_W0H0_not_given() -> Fixture:
     return (indata, kernel_params, kernel)
 
 
+@fixture
+def fixture_with_tol_H0_not_given() -> Fixture:
+    sparse = np.eye(9) * 3.0
+    (m, n) = sparse.shape
+    target_rank = 5
+    candidate_W = np.ones((m, target_rank))
+    candidate_H = np.ones((target_rank, n))
+    candidate = candidate_W @ candidate_H
+    svd_strategy = SVDStrategy.RANDOM_TRUNCATED
+    tolerance = 3.0
+    momentum_beta = 0.7
+    indata = KernelInputType(sparse, candidate, target_rank, svd_strategy, tolerance)
+    kernel_params = Momentum3BlockAdditionalParameters(momentum_beta, candidate_W)
+    kernel = Momentum3BlockModelFreeKernel(indata, kernel_params)
+    return (indata, kernel_params, kernel)
+
+
+@fixture
+def fixture_with_tol_W0_not_given() -> Fixture:
+    sparse = np.eye(9) * 3.0
+    (m, n) = sparse.shape
+    target_rank = 5
+    candidate_W = np.ones((m, target_rank))
+    candidate_H = np.ones((target_rank, n))
+    candidate = candidate_W @ candidate_H
+    svd_strategy = SVDStrategy.RANDOM_TRUNCATED
+    tolerance = 3.0
+    momentum_beta = 0.7
+    indata = KernelInputType(sparse, candidate, target_rank, svd_strategy, tolerance)
+    kernel_params = Momentum3BlockAdditionalParameters(
+        momentum_beta, candidate_factor_H0=candidate_H
+    )
+    kernel = Momentum3BlockModelFreeKernel(indata, kernel_params)
+    return (indata, kernel_params, kernel)
+
+
 @patch(f"{PKG}.compute_loss")
 @patch(f"{PKG}.update_H")
 @patch(f"{PKG}.update_W")
@@ -124,10 +160,31 @@ def test_momentum_3block_model_free_kernel_step_apply_momentum_call_count(
     assert mock_apply_momentum.call_count == 3
 
 
-def test_momentum_3block_model_free_kernel_W0H0_initialized_if_not_given(
+def test_momentum_3block_model_free_kernel_W0H0_initialized_if_both_not_given(
     fixture_no_tol_W0H0_not_given: Fixture,
 ) -> None:
     (indata, _, kernel) = fixture_no_tol_W0H0_not_given
+
+    np.testing.assert_array_almost_equal(
+        indata.low_rank_candidate_L,
+        kernel.candidate_factor_W @ kernel.candidate_factor_H,
+    )
+
+
+def test_momentum_3block_model_free_kernel_W0H0_initialized_if_W0_not_given(
+    fixture_with_tol_W0_not_given: Fixture,
+) -> None:
+    (indata, _, kernel) = fixture_with_tol_W0_not_given
+    np.testing.assert_array_almost_equal(
+        indata.low_rank_candidate_L,
+        kernel.candidate_factor_W @ kernel.candidate_factor_H,
+    )
+
+
+def test_momentum_3block_model_free_kernel_W0H0_initialized_if_H0_not_given(
+    fixture_with_tol_H0_not_given: Fixture,
+) -> None:
+    (indata, _, kernel) = fixture_with_tol_H0_not_given
 
     np.testing.assert_array_almost_equal(
         indata.low_rank_candidate_L,
