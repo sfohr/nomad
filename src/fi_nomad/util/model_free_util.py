@@ -4,6 +4,8 @@ Functions:
     construct_utility: Construct candidate by enforcing base matrix constraints on an SVD result.
     apply_momentum: Applies momentum term on a matrix using the difference from the previous 
         to the current solution.
+    reconstruct_X_from_L: Reconstruct the sparse matrix X by setting negative entries
+        of `low_rank_candidate_L` to zero.
 """
 
 import numpy as np
@@ -72,3 +74,16 @@ def apply_momentum(
         assert np.array_equal(X, post_momentum_X)
     """
     return current_X + beta * (current_X - previous_X)
+
+
+def reconstruct_X_from_L(low_rank_candidate_L: FloatArrayType) -> FloatArrayType:
+    """Reconstruct sparse matrix X by setting negative entries of L to zero.
+
+    Args:
+        low_rank_candidate_L: the low rank reconstruction of X before elementwise
+            application of the ReLU function
+
+    Returns:
+        FloatArrayType: sparse reconstruction of `sparse_matrix_X`.
+    """
+    return np.maximum(0.0, low_rank_candidate_L)
