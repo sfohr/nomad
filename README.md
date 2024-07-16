@@ -97,7 +97,10 @@ Three parameters are required:
     Saul (2022), but which computes a different variance value for each row instead of using a single
     global/mean variance
   - `KernelStrategy.MOMENTUM_3_BLOCK_MODEL_FREE` -- an extension of the base model-free algorithm,
-    which uses the parametrization $L=WH$ to separately update $W$ and $H$, using matrix least squares, and extrapolating $Z$ and $L$ with momentum terms.
+    which uses the parametrization `L=WH` to separately update `W` and `H`, using matrix least squares, and extrapolating `Z` and `L` with momentum terms.
+  - `KernelStrategy.AGGRESSIVE_MOMENTUM_MODEL_FREE` -- an extension of the base model-free algorithm,
+    which extrapolates `Z` and `L` with momentum terms. The momentum parameter is heuristically adapted
+    based on the increase or decrease of the loss.
 
 Additionally, the following options are exposed:
 
