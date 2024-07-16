@@ -30,6 +30,22 @@ from fi_nomad.util import find_low_rank, compute_loss, two_part_factor
 
 
 class AggressiveMomentumModelFreeKernel(KernelBase):
+    """Aggressive Momentum model-free algorithm as described in Seraghiti et. al. (2023)
+
+    This is an extension of the base model-free algorithm described in Saul (2022).
+    It extrapolates `Z` and `L` using momentum terms with momentum parameter `momentum_beta`
+    to accelerate convergence. This momentum parameter is heuristically tuned conditional
+    on the increase or decrease of the loss. If the loss:
+
+        - decreases: increase `self.momentum_beta` by `self.momentum_increase_factor_gamma`
+            until `self.beta_upper_bound_beta_bar` is reached. Accept updates on
+            `self.utility_matrix_Z` and `self.low_rank_candidate_L`.
+
+        - increases: decrease `self.momentum_beta` by `self.momentum_decrease_divisor_eta`,
+            set `self.beta_upper_bound_beta_bar` to `self.last_loss_reducing_beta`,
+            and reject the updates on `self.utility_matrix_Z` and `self.low_rank_candidate_L`.
+    """
+
     def __init__(
         self,
         indata: KernelInputType,
@@ -61,9 +77,10 @@ class AggressiveMomentumModelFreeKernel(KernelBase):
     def increase_momentum_parameters(self) -> None:
         """Increase momentum beta and update beta's upper bound beta_bar
 
-        If the loss between previous and current step decreased, the momentum
-        parameter beta is increased by factor gamma until it reaches it's upper
-        bound beta_bar. beta's upper bound beta_bar is increased by factor gamma_bar.
+        If the loss between previous and current step decreased, `self.momentum_beta`
+        is increased by `self.momentum_upper_bound_increase_factor_gamma_bar`
+        until it reaches `self.beta_upper_bound_beta_bar`.
+        `self.beta_upper_bound_beta_bar` is increased by `self.momentum_increase_factor_gamma`.
         A method call increases the magnitude of the momentum steps performed on
         utility matrix Z and low rank candidate L.
 
@@ -83,10 +100,10 @@ class AggressiveMomentumModelFreeKernel(KernelBase):
     def decrease_momentum_parameters(self) -> None:
         """Decrease momentum beta by divisor eta and assign previous beta to beta_bar
 
-        If the loss between previous and current step increased, the momentum
-        parameter beta is decreased by dividing it by eta, thereby reducing the
-        magnitude of the momentum terms. Furthermore, the upper bound for beta
-        (beta_bar) is set to the last beta that decreased the loss.
+        If the loss between previous and current step increased, `self.momentum_beta`
+        is decreased by `self.momentum_decrease_divisor_eta`, thereby reducing the
+        magnitude of the momentum terms. Furthermore, `self.beta_upper_bound_beta_bar`
+        is set to the last beta that decreased the loss.
 
         Returns:
             None
@@ -140,12 +157,23 @@ class AggressiveMomentumModelFreeKernel(KernelBase):
         return parameter_update_loss
 
     def step(self) -> None:
-        """Performs a single step of the aggressive momentum model-free algorithm.
+        """Executes a single step of the aggressive momentum model-free algorithm (A-NMD).
 
+        A single step of A-NMD consists of:
 
-        XXXXXX ... differs from the matlab implementation and the algorithm described
-        in the paper, namely:
-            -
+            - Applies momentum to the low-rank candidate `L` (starting from the 2nd iteration).
+            - Adjusts the momentum parameter beta (starting from the 3rd iteration).
+            - Constructs the utility matrix `Z`.
+            - Applies momentum to the utility matrix `Z`.
+            - Updates the low-rank candidate `L`.
+            - Computes the loss (if a tolerance is specified).
+
+        This implementation differs from the matlab implementation and the algorithm described
+        in the paper in the order of operations. Momentum on `low_rank_condidate_L` is
+        performed at the beginning of each iteration, starting in iteration 1, so we can omit
+        an additional parameter `max_iterations` and ensure that `self.low_rank_candidate_L` is
+        the matrix that produced the current `self.loss`. Furthermore, the momentum
+        parameter updates are moved to the top for the same reason.
 
         Returns:
             None
