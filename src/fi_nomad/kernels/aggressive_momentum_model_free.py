@@ -108,12 +108,12 @@ class AggressiveMomentumModelFreeKernel(KernelBase):
         Returns:
             None
         """
-        last_beta_that_decreased_error = self.momentum_beta
+        last_beta_that_decreased_loss = self.momentum_beta
         self.momentum_beta = decrease_momentum_beta(
             self.momentum_beta, self.momentum_decrease_divisor_eta
         )
 
-        self.beta_upper_bound_beta_bar = last_beta_that_decreased_error
+        self.beta_upper_bound_beta_bar = last_beta_that_decreased_loss
 
     def accept_matrix_updates(self) -> None:
         """Accept updates on utility matrix Z and low rank candidate L
