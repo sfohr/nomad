@@ -1,9 +1,8 @@
-from pathlib import Path
 from typing import Tuple, cast
 import numpy as np
 from unittest.mock import Mock, patch
 
-from pytest import LogCaptureFixture, fixture
+from pytest import fixture
 from fi_nomad.kernels import AggressiveMomentumModelFreeKernel
 from fi_nomad.types import (
     FloatArrayType,
@@ -11,7 +10,6 @@ from fi_nomad.types import (
     AggressiveMomentumAdditionalParameters,
     LossType,
     SVDStrategy,
-    DiagnosticLevel,
 )
 
 Fixture = Tuple[
@@ -140,8 +138,30 @@ def test_aggressive_momentum_first_kernel_step(
     mock_reject_matrix_updates.assert_not_called()
 
 
+@patch(f"{PKG}.compute_loss")
+@patch(f"{PKG}.reconstruct_X_from_L")
+def test_compute_parameter_update_loss(
+    mock_reconstruct_X_from_L: Mock,
+    mock_compute_loss: Mock,
+    fixture_with_tol: Fixture,
+) -> None:
+    (_, _, kernel) = fixture_with_tol
+    kernel.parameter_update_loss = 1.0
+    kernel.elapsed_iterations = 1
+
+    mock_reconstruct_X_from_L.return_value = np.eye(3)
+
+    kernel.compute_parameter_update_loss()
+    mock_reconstruct_X_from_L.assert_called_once_with(kernel.low_rank_candidate_L)
+    mock_compute_loss.assert_called_once_with(
+        kernel.sparse_matrix_X,
+        mock_reconstruct_X_from_L.return_value,
+        LossType.FROBENIUS,
+    )
+
+
 @patch(f"{PKG}.{KERNEL_CLASS}.compute_parameter_update_loss")
-def test_compute_parameter_update_loss_assignment(
+def test_compute_parameter_update_loss_correct_assignment(
     mock_compute_parameter_update_loss: Mock,
     fixture_with_tol: Fixture,
 ) -> None:
@@ -228,6 +248,62 @@ def test_aggressive_momentum_reject_matrix_updates(fixture_with_tol: Fixture) ->
         kernel.low_rank_candidate_L, previous_low_rank_candidate_L
     )
     np.testing.assert_array_equal(kernel.utility_matrix_Z, previous_utility_matrix_Z)
+
+
+@patch(f"{PKG}.{KERNEL_CLASS}.reject_matrix_updates")
+@patch(f"{PKG}.{KERNEL_CLASS}.decrease_momentum_parameters")
+@patch(f"{PKG}.{KERNEL_CLASS}.accept_matrix_updates")
+@patch(f"{PKG}.{KERNEL_CLASS}.increase_momentum_parameters")
+@patch(f"{PKG}.{KERNEL_CLASS}.compute_parameter_update_loss")
+def test_aggressive_momentum_parameter_adaption(
+    mock_compute_parameter_update_loss: Mock,
+    mock_increase_momentum_parameters: Mock,
+    mock_accept_matrix_updates: Mock,
+    mock_decrease_momentum_parameters: Mock,
+    mock_reject_matrix_updates: Mock,
+    fixture_with_tol: Fixture,
+) -> None:
+    (_, _, kernel) = fixture_with_tol
+    kernel.elapsed_iterations = 3
+
+    # loss decreasing
+    kernel.parameter_update_loss = 5.0
+    mock_compute_parameter_update_loss.return_value = 4.0
+    kernel.step()
+
+    mock_compute_parameter_update_loss.assert_called_once()
+    mock_increase_momentum_parameters.assert_called_once()
+    mock_accept_matrix_updates.assert_called_once()
+    mock_decrease_momentum_parameters.assert_not_called()
+    mock_reject_matrix_updates.assert_not_called()
+
+    mock_compute_parameter_update_loss.reset_mock()
+    mock_increase_momentum_parameters.reset_mock()
+    mock_accept_matrix_updates.reset_mock()
+
+    # loss increasing
+    mock_compute_parameter_update_loss.return_value = 5.0
+    kernel.step()
+
+    mock_compute_parameter_update_loss.assert_called_once()
+    mock_increase_momentum_parameters.assert_not_called()
+    mock_accept_matrix_updates.assert_not_called()
+    mock_decrease_momentum_parameters.assert_called_once()
+    mock_reject_matrix_updates.assert_called_once()
+
+    mock_compute_parameter_update_loss.reset_mock()
+    mock_decrease_momentum_parameters.reset_mock()
+    mock_reject_matrix_updates.reset_mock()
+
+    # loss constant
+    mock_compute_parameter_update_loss.return_value = 5.0
+    kernel.step()
+    mock_compute_parameter_update_loss.assert_called_once()
+    mock_compute_parameter_update_loss.ass
+    mock_increase_momentum_parameters.assert_not_called()
+    mock_accept_matrix_updates.assert_not_called()
+    mock_decrease_momentum_parameters.assert_called_once()
+    mock_reject_matrix_updates.assert_called_once()
 
 
 def test_aggressive_momentum_running_report(fixture_with_tol: Fixture) -> None:
