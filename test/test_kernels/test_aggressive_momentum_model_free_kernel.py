@@ -78,7 +78,6 @@ def test_aggressive_momentum_kernel_instantiation(fixture_with_tol: Fixture) -> 
 @patch(f"{PKG}.find_low_rank")
 @patch(f"{PKG}.apply_momentum")
 @patch(f"{PKG}.construct_utility")
-@patch(f"{PKG}.reconstruct_X_from_L")
 @patch(f"{PKG}.{KERNEL_CLASS}.reject_matrix_updates")
 @patch(f"{PKG}.{KERNEL_CLASS}.decrease_momentum_parameters")
 @patch(f"{PKG}.{KERNEL_CLASS}.accept_matrix_updates")
@@ -90,7 +89,6 @@ def test_aggressive_momentum_first_kernel_step(
     mock_accept_matrix_updates: Mock,
     mock_decrease_momentum_parameters: Mock,
     mock_reject_matrix_updates: Mock,
-    mock_reconstruct_X_from_L: Mock,
     mock_construct: Mock,
     mock_apply_momentum: Mock,
     mock_find_low_rank: Mock,
@@ -102,7 +100,6 @@ def test_aggressive_momentum_first_kernel_step(
     mock_construct.return_value = np.full(shape_X, 4.0)
     mock_apply_momentum.return_value = np.full(shape_X, 5.0)
     mock_find_low_rank.return_value = np.full(shape_X, 6.0)
-    mock_reconstruct_X_from_L.return_value = np.full(shape_X, 7.0)
     mock_compute_loss.return_value = 3.0
 
     initial_utility_Z = kernel.utility_matrix_Z
@@ -123,11 +120,9 @@ def test_aggressive_momentum_first_kernel_step(
         kernel.svd_strategy,
     )
 
-    mock_reconstruct_X_from_L.assert_called_once_with(mock_find_low_rank.return_value)
-
     mock_compute_loss.assert_called_once_with(
-        kernel.sparse_matrix_X,
-        mock_reconstruct_X_from_L.return_value,
+        mock_apply_momentum.return_value,
+        mock_find_low_rank.return_value,
         LossType.FROBENIUS,
     )
 
