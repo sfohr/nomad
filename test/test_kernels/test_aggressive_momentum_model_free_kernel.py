@@ -167,7 +167,9 @@ def test_compute_parameter_update_loss_correct_assignment(
 
     kernel.step()
     mock_compute_parameter_update_loss.assert_called_once()
-    assert kernel.parameter_update_loss == 3.0
+    assert (
+        kernel.parameter_update_loss == mock_compute_parameter_update_loss.return_value
+    )
 
 
 @patch(f"{PKG}.increase_momentum_beta")
@@ -294,7 +296,6 @@ def test_aggressive_momentum_parameter_adaption(
     mock_compute_parameter_update_loss.return_value = 5.0
     kernel.step()
     mock_compute_parameter_update_loss.assert_called_once()
-    mock_compute_parameter_update_loss.ass
     mock_increase_momentum_parameters.assert_not_called()
     mock_accept_matrix_updates.assert_not_called()
     mock_decrease_momentum_parameters.assert_called_once()
