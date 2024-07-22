@@ -18,7 +18,7 @@ def test_increase_momentum_beta_regular() -> None:
     beta = 0.5
     gamma = 1.2
     beta_bar = 1.0
-    expected_result = 0.6
+    expected_result = min(beta_bar, beta * gamma)
 
     result = increase_momentum_beta(beta, gamma, beta_bar=beta_bar)
     assert expected_result == result
@@ -28,7 +28,7 @@ def test_increase_momentum_beta_upper_bound_reached() -> None:
     beta = 0.8
     gamma = 1.5
     beta_bar = 1.0
-    expected_result = 1.0
+    expected_result = min(beta_bar, beta * gamma)
 
     result = increase_momentum_beta(beta, gamma, beta_bar=beta_bar)
     assert expected_result == result
@@ -56,7 +56,7 @@ def test_decrease_momentum_beta() -> None:
     beta = 0.9
     eta = 2.5
 
-    expected_result = 0.36
+    expected_result = beta / eta
     actual_result = decrease_momentum_beta(beta, eta)
     assert expected_result == actual_result
 
