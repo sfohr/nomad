@@ -4,6 +4,7 @@ from fi_nomad import decompose
 from fi_nomad.types import (
     KernelStrategy,
     Momentum3BlockAdditionalParameters,
+    AggressiveMomentumAdditionalParameters,
     KernelSpecificParameters,
 )
 from fi_nomad.util import compute_loss
@@ -18,6 +19,10 @@ all_kernels_with_params = [
     (
         KernelStrategy.MOMENTUM_3_BLOCK_MODEL_FREE,
         Momentum3BlockAdditionalParameters(momentum_beta=0.7),
+    ),
+    (
+        KernelStrategy.AGGRESSIVE_MOMENTUM_MODEL_FREE,
+        AggressiveMomentumAdditionalParameters(),
     ),
 ]
 

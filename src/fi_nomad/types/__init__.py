@@ -17,6 +17,7 @@ from .kernelInputTypes import (
     KernelInputType as KernelInputType,
     KernelSpecificParameters as KernelSpecificParameters,
     Momentum3BlockAdditionalParameters as Momentum3BlockAdditionalParameters,
+    AggressiveMomentumAdditionalParameters as AggressiveMomentumAdditionalParameters,
 )
 
 from .kernelReturnTypes import (
@@ -24,6 +25,7 @@ from .kernelReturnTypes import (
     SingleVarianceGaussianModelKernelReturnType as SingleVarianceGaussianModelKernelReturnType,
     RowwiseVarianceGaussianModelKernelReturnType as RowwiseVarianceGaussianModelKernelReturnType,
     Momentum3BlockModelFreeKernelReturnType as Momentum3BlockModelFreeKernelReturnType,
+    AggressiveMomentumModelFreeKernelReturnType as AggressiveMomentumModelFreeKernelReturnType,
     KernelReturnDataType as KernelReturnDataType,
     KernelReturnType as KernelReturnType,
 )

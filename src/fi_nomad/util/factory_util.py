@@ -14,6 +14,7 @@ from fi_nomad.kernels import (
     RowwiseVarianceGaussianModelKernel,
     SingleVarianceGaussianModelKernel,
     Momentum3BlockModelFreeKernel,
+    AggressiveMomentumModelFreeKernel,
 )
 
 from fi_nomad.types.enums import DiagnosticLevel
@@ -26,6 +27,7 @@ from fi_nomad.types import (
     KernelStrategy,
     DiagnosticDataConfig,
     Momentum3BlockAdditionalParameters,
+    AggressiveMomentumAdditionalParameters,
 )
 
 
@@ -72,6 +74,14 @@ def instantiate_kernel(
             raise TypeError(
                 "kernel_params must be an instance of Momentum3BlockAdditionalParameters \
                     for MOMENTUM_3_BLOCK_MODEL_FREE strategy."
+            )
+    elif s == KernelStrategy.AGGRESSIVE_MOMENTUM_MODEL_FREE:
+        if isinstance(kernel_params, AggressiveMomentumAdditionalParameters):
+            kernel = AggressiveMomentumModelFreeKernel(data_in, kernel_params)
+        else:
+            raise TypeError(
+                "kernel_params must be an instance of AggressiveMomentumAdditionalParameters \
+                    for AGGRESSIVE_MOMENTUM_MODEL_FREE strategy."
             )
     else:
         raise ValueError(f"Unsupported kernel strategy {s}")
